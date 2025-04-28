@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Mode Hacker Calculator</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #00ff00;
+            --display-bg: #0a0a0a;
+            --display-border: #003300;
+            --button-bg: #111;
+            --button-border: #003300;
+            --button-hover: #003300;
+            --operator-color: #00cc00;
+            --clear-color: #ff5555;
+            --equals-bg: #006600;
+            --glitch-opacity: 0.3;
+            --title-glow: 0 0 5px #00ff00;
+        }
+
+        .simple-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --display-bg: #252525;
+            --display-border: #333;
+            --button-bg: #2d2d2d;
+            --button-border: none;
+            --button-hover: #3a3a3a;
+            --operator-color: #4dabf7;
+            --clear-color: #ff6b6b;
+            --equals-bg: #1971c2;
+            --glitch-opacity: 0;
+            --title-glow: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+            transition: all 0.3s;
+        }
+
+        .calculator {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            width: 300px;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .glitch {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="1" fill="rgba(0,255,0,0.1)"/></svg>');
+            opacity: var(--glitch-opacity);
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            border: none;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-shadow: var(--title-glow);
+            transition: all 0.3s;
+        }
+
+        .display-container {
+            position: relative;
+        }
+
+        .history {
+            font-size: 14px;
+            color: #777;
+            height: 18px;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
+        .display {
+            background-color: var(--display-bg);
+            border: 1px solid var(--display-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: right;
+            font-size: 32px;
+            height: 40px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .hack-mode .display::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff00, transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 12px;
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 18px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.15s;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button.operator {
+            color: var(--operator-color);
+        }
+
+        button.clear {
+            color: var(--clear-color);
+        }
+
+        button.equals {
+            background-color: var(--equals-bg);
+            color: white;
+            grid-column: span 2;
+            position: relative:
+            left=-12px;
+        }
+
+      
+    </style>
+</head>
+<body class="hack-mode">
+    <div class="calculator">
+        <button class="mode-toggle" onclick="toggleMode()">SIMPLE</button>
+        <div class="glitch"></div>
+        <div class="title">SYSTEM CALCULATOR</div>
+        <div class="display-container">
+            <div class="history" id="history"></div>
+            <div class="display" id="display">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearAll()">AC</button>
+            <button onclick="appendToDisplay('(')">(</button>
+            <button onclick="appendToDisplay(')')">)</button>
+            <button class="operator" onclick="appendToDisplay('/')">/</button>
+            
+            <button onclick="appendToDisplay('7')">7</button>
+            <button onclick="appendToDisplay('8')">8</button>
+            <button onclick="appendToDisplay('9')">9</button>
+            <button class="operator" onclick="appendToDisplay('*')">×</button>
+            
+            <button onclick="appendToDisplay('4')">4</button>
+            <button onclick="appendToDisplay('5')">5</button>
+            <button onclick="appendToDisplay('6')">6</button>
+            <button class="operator" onclick="appendToDisplay('-')">-</button>
+            
+            <button onclick="appendToDisplay('1')">1</button>
+            <button onclick="appendToDisplay('2')">2</button>
+            <button onclick="appendToDisplay('3')">3</button>
+            <button class="operator" onclick="appendToDisplay('+')">+</button>
+            
+            <button class="zero" onclick="appendToDisplay('0')">0</button>
+            <button onclick="appendToDisplay('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        const history = document.getElementById('history');
+        let currentInput = '0';
+        let previousInput = '';
+        let calculationDone = false;
+
+        function toggleMode() {
+            const body = document.body;
+            const toggleBtn = document.querySelector('.mode-toggle');
+            
+            if (body.classList.contains('hack-mode')) {
+                body.classList.remove('hack-mode');
+                body.classList.add('simple-mode');
+                toggleBtn.textContent = 'HACK';
+            } else {
+                body.classList.remove('simple-mode');
+                body.classList.add('hack-mode');
+                toggleBtn.textContent = 'SIMPLE';
+            }
+        }
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function appendToDisplay(value) {
+            if (calculationDone) {
+                if (['+', '-', '*', '/', '(', ')'].includes(value)) {
+                    previousInput = currentInput;
+                    currentInput = value;
+                    calculationDone = false;
+                } else {
+                    previousInput = '';
+                    currentInput = value;
+                    calculationDone = false;
+                }
+            } else if (currentInput === '0' && value !== '.') {
+                currentInput = value;
+            } else {
+                currentInput += value;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '';
+            calculationDone = false;
+            history.textContent = '';
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                history.textContent = currentInput + ' =';
+                // Replace × with * for evaluation
+                const expression = currentInput.replace(/×/g, '*');
+                currentInput = eval(expression).toString();
+                calculationDone = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                updateDisplay();
+                setTimeout(clearAll, 1000);
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            
+            if (/[0-9]/.test(key)) {
+                appendToDisplay(key);
+            } else if (['+', '-', '*', '/', '(', ')', '.'].includes(key)) {
+                appendToDisplay(key);
+            } else if (key === 'Enter') {
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                if (currentInput.length === 1) {
+                    clearAll();
+                } else {
+                    currentInput = currentInput.slice(0, -1);
+                    updateDisplay();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
